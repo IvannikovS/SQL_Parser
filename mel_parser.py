@@ -11,37 +11,18 @@ def _make_parser():
     num = ppc.fnumber
     ident = ppc.identifier
 
-    LPAR, RPAR = pp.Literal('(').suppress(), pp.Literal(')').suppress()
-    FLPAR, FRPAR = pp.Literal('{').suppress(), pp.Literal('}').suppress()
-    ASSIGN = pp.Literal('=')
-    COMPARE = pp.oneOf(('== > <'))
-    MULT, ADD = pp.oneOf(('* /')), pp.oneOf(('+ -'))
-
-    INPUT = pp.Keyword('input')
-    OUTPUT = pp.Keyword('output')
 
     add = pp.Forward()
 
-    group = ident | num | LPAR + add + RPAR | FLPAR + add + FRPAR
-    mult = group + pp.ZeroOrMore(MULT + group)
-    add << mult + pp.ZeroOrMore(ADD + mult)
-    compare = add + pp.Optional(COMPARE + add)
-
-    expr = compare
 
     stmt = pp.Forward()
 
-    input = INPUT.suppress() + ident
-    output = OUTPUT.suppress() + add
-    assign = ident + ASSIGN.suppress() + add
+    select_ = pp.Group(pp.Keyword("select").suppress() + pp.OneOrMore(ident)).setName('test')
+    from_ = pp.Group(pp.Keyword("from").suppress() + pp.OneOrMore(ident)).setName('test')
 
-    if_ = pp.Keyword("if").suppress() + LPAR + expr + RPAR + stmt + \
-          pp.Optional(pp.Keyword("else").suppress() + stmt)
-    while_ = pp.Keyword("while").suppress() + LPAR + expr + RPAR + stmt
     stmt_list = pp.Forward()
     stmt << (
-            FLPAR + stmt_list + FRPAR |
-            input | output | assign | if_ | while_
+          select_ | from_
     )
     stmt_list << pp.ZeroOrMore(stmt)
     program = stmt_list.ignore(pp.cStyleComment).ignore(pp.dblSlashComment) + pp.StringEnd()
@@ -51,7 +32,7 @@ def _make_parser():
     def set_parse_action_magic(rule_name: str, parser: pp.ParserElement) -> None:
         if rule_name == rule_name.upper():
             return
-        if rule_name in ('mult', 'add', 'compare'):
+        if rule_name in ('test'):
             def bin_op_parse_action(s, loc, tocs):
                 rn = rule_name
                 node = tocs[0]
