@@ -149,6 +149,31 @@ class WhileNode(StmtNode):
     def __str__(self) -> str:
         return 'while'
 
+class SelectNode(StmtNode):
+    def __init__(self, cond: ExprNode):
+        super().__init__()
+        self.cond = cond
+
+
+    @property
+    def childs(self) -> Tuple[ExprNode]:
+        return self.cond
+
+    def __str__(self) -> str:
+        return 'select'
+
+
+class FromNode(StmtNode):
+    def __init__(self, cond: ExprNode):
+        super().__init__()
+        self.cond = cond
+
+    @property
+    def childs(self) -> Tuple[ExprNode]:
+        return self.cond
+
+    def __str__(self) -> str:
+        return 'from'
 
 class StmtListNode(AstNode):
     def __init__(self, *exprs: AstNode):
