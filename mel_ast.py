@@ -5,15 +5,15 @@ from enum import Enum
 
 class AstNode(ABC):
     @property
-    def childs(self)->Tuple['AstNode', ...]:
+    def childs(self) -> Tuple['AstNode', ...]:
         return ()
 
     @abstractmethod
-    def __str__(self)->str:
+    def __str__(self) -> str:
         pass
 
     @property
-    def tree(self)->[str, ...]:
+    def tree(self) -> [str, ...]:
         res = [str(self)]
         childs = self.childs
         for i, child in enumerate(childs):
@@ -23,7 +23,7 @@ class AstNode(ABC):
             res.extend(((ch0 if j == 0 else ch) + ' ' + s for j, s in enumerate(child.tree)))
         return res
 
-    def visit(self, func: Callable[['AstNode'], None])->None:
+    def visit(self, func: Callable[['AstNode'], None]) -> None:
         func(self)
         map(func, self.childs)
 
@@ -40,7 +40,7 @@ class NumNode(ExprNode):
         super().__init__()
         self.num = float(num)
 
-    def __str__(self)->str:
+    def __str__(self) -> str:
         return str(self.num)
 
 
@@ -49,18 +49,16 @@ class IdentNode(ExprNode):
         super().__init__()
         self.name = str(name)
 
-    def __str__(self)->str:
+    def __str__(self) -> str:
         return str(self.name)
 
 
 class BinOp(Enum):
-    ADD = '+'
-    SUB = '-'
-    MUL = '*'
-    DIV = '/'
     MORE = '>'
     LESS = '<'
-    EQUALS = '=='
+    EQUALS = '='
+    AND = 'and'
+    OR = 'or'
 
 
 class BinOpNode(ExprNode):
@@ -74,7 +72,7 @@ class BinOpNode(ExprNode):
     def childs(self) -> Tuple[ExprNode, ExprNode]:
         return self.arg1, self.arg2
 
-    def __str__(self)->str:
+    def __str__(self) -> str:
         return str(self.op.value)
 
 
@@ -86,7 +84,7 @@ class InputNode(AstNode):
     def childs(self) -> Tuple[IdentNode]:
         return self.var,
 
-    def __str__(self)->str:
+    def __str__(self) -> str:
         return 'input'
 
 
@@ -98,7 +96,7 @@ class OutputNode(AstNode):
     def childs(self) -> Tuple[ExprNode]:
         return self.arg,
 
-    def __str__(self)->str:
+    def __str__(self) -> str:
         return 'output'
 
 
@@ -116,7 +114,7 @@ class AssignNode(StmtNode):
     def childs(self) -> Tuple[IdentNode, ExprNode]:
         return self.var, self.val
 
-    def __str__(self)->str:
+    def __str__(self) -> str:
         return '='
 
 
@@ -141,7 +139,6 @@ class WhileNode(StmtNode):
         self.cond = cond
         self.body = body
 
-
     @property
     def childs(self) -> Tuple[ExprNode, StmtNode]:
         return self.cond, self.body
@@ -149,11 +146,11 @@ class WhileNode(StmtNode):
     def __str__(self) -> str:
         return 'while'
 
+
 class SelectNode(StmtNode):
     def __init__(self, cond: ExprNode):
         super().__init__()
         self.cond = cond
-
 
     @property
     def childs(self) -> Tuple[ExprNode]:
@@ -175,6 +172,20 @@ class FromNode(StmtNode):
     def __str__(self) -> str:
         return 'from'
 
+
+class WhereNode(StmtNode):
+    def __init__(self, cond: ExprNode):
+        super().__init__()
+        self.cond = cond
+
+    @property
+    def childs(self) -> Tuple[ExprNode]:
+        return self.cond
+
+    def __str__(self) -> str:
+        return 'where'
+
+
 class StmtListNode(AstNode):
     def __init__(self, *exprs: AstNode):
         super().__init__()
@@ -184,5 +195,5 @@ class StmtListNode(AstNode):
     def childs(self) -> Tuple[AstNode]:
         return self.exprs
 
-    def __str__(self)->str:
+    def __str__(self) -> str:
         return '...'
