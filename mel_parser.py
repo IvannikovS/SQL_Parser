@@ -11,18 +11,26 @@ def _make_parser():
     num = ppc.fnumber
     ident = ppc.identifier
 
-
-    add = pp.Forward()
-
+    COMPARE = pp.oneOf(('= > <'))
+    BOOL = pp.oneOf(('and or'))
 
     stmt = pp.Forward()
 
-    select_ = pp.Group(pp.Keyword("select").suppress() + pp.OneOrMore(ident)).setName('test')
-    from_ = pp.Group(pp.Keyword("from").suppress() + pp.OneOrMore(ident)).setName('test')
+    group = ident
+    cols = group + pp.ZeroOrMore(pp.Literal((',')).suppress() + group)
 
+    bool_op = pp.Forward()
+
+    group_where = ident | num | pp.Literal('(').suppress() + bool_op + pp.Literal(')').suppress()
+    compare = group_where + pp.Optional(COMPARE + group_where)
+    bool_op << compare + pp.ZeroOrMore(BOOL + compare)
+
+    select_ = pp.Group(pp.Keyword("select").suppress() + (pp.Char('*').suppress() | cols)).setName('select')
+    from_ = pp.Group(pp.Keyword("from").suppress() + cols).setName('from')
+    where_ = pp.Group(pp.Keyword("where").suppress() + bool_op).setName('where')
     stmt_list = pp.Forward()
     stmt << (
-          select_ | from_
+            select_ | from_ | where_
     )
     stmt_list << pp.ZeroOrMore(stmt)
     program = stmt_list.ignore(pp.cStyleComment).ignore(pp.dblSlashComment) + pp.StringEnd()
@@ -32,7 +40,7 @@ def _make_parser():
     def set_parse_action_magic(rule_name: str, parser: pp.ParserElement) -> None:
         if rule_name == rule_name.upper():
             return
-        if rule_name in ('test'):
+        if rule_name in ('compare', 'bool_op'):
             def bin_op_parse_action(s, loc, tocs):
                 rn = rule_name
                 node = tocs[0]
