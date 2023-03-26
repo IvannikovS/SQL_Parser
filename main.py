@@ -11,15 +11,5 @@ def main():
     print(*prog.tree, sep=os.linesep)
 
 
-
-
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
     main()
