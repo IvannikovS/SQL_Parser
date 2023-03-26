@@ -65,10 +65,7 @@ def _make_parser():
 
     return start
 
-
 parser = _make_parser()
-
-
 
 def parse(prog: str) -> StmtListNode:
     return parser.parseString(str(prog))[0]
