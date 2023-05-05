@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Tuple, Optional, Union
+from typing import Callable, Tuple
 from enum import Enum
 
 
@@ -118,42 +118,13 @@ class AssignNode(StmtNode):
         return '='
 
 
-class IfNode(StmtNode):
-    def __init__(self, cond: ExprNode, then_stmt: StmtNode, else_stmt: Optional[StmtNode] = None):
-        super().__init__()
-        self.cond = cond
-        self.then_stmt = then_stmt
-        self.else_stmt = else_stmt
-
-    @property
-    def childs(self) -> Tuple[ExprNode, StmtNode, Optional[StmtNode]]:
-        return (self.cond, self.then_stmt) + ((self.else_stmt,) if self.else_stmt else tuple())
-
-    def __str__(self) -> str:
-        return 'if'
-
-
-class WhileNode(StmtNode):
-    def __init__(self, cond: ExprNode, body: StmtNode):
-        super().__init__()
-        self.cond = cond
-        self.body = body
-
-    @property
-    def childs(self) -> Tuple[ExprNode, StmtNode]:
-        return self.cond, self.body
-
-    def __str__(self) -> str:
-        return 'while'
-
-
 class SelectNode(StmtNode):
     def __init__(self, cond: ExprNode):
         super().__init__()
         self.cond = cond
 
     @property
-    def childs(self) -> Tuple[ExprNode]:
+    def childs(self) -> ExprNode:
         return self.cond
 
     def __str__(self) -> str:
@@ -166,7 +137,7 @@ class FromNode(StmtNode):
         self.cond = cond
 
     @property
-    def childs(self) -> Tuple[ExprNode]:
+    def childs(self) -> ExprNode:
         return self.cond
 
     def __str__(self) -> str:
@@ -179,11 +150,56 @@ class WhereNode(StmtNode):
         self.cond = cond
 
     @property
-    def childs(self) -> Tuple[ExprNode]:
+    def childs(self) -> ExprNode:
         return self.cond
 
     def __str__(self) -> str:
         return 'where'
+
+
+class GroupByNode(StmtNode):
+    def __init__(self, cond: ExprNode):
+        super().__init__()
+        self.cond = cond
+
+    @property
+    def childs(self) -> ExprNode:
+        return self.cond
+
+    def __str__(self) -> str:
+        return 'group by'
+
+
+class HavingNode(StmtNode):
+    def __init__(self, cond: ExprNode):
+        super().__init__()
+        self.cond = cond
+
+    @property
+    def childs(self) -> ExprNode:
+        return self.cond
+
+    def __str__(self) -> str:
+        return 'having'
+
+
+class SortOrder(Enum):
+    ASCENDING = 'asc'
+    DESCENDING = 'desc'
+
+
+class OrderByNode(StmtNode):
+    def __init__(self, column: ExprNode):
+        super().__init__()
+        self.column = column
+
+    @property
+    def childs(self) -> ExprNode:
+        return self.column
+
+    def __str__(self) -> str:
+        return 'order by'
+
 
 
 class StmtListNode(AstNode):
