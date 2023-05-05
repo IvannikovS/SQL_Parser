@@ -1,6 +1,5 @@
 from contextlib import suppress
 import inspect
-
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 
@@ -11,13 +10,12 @@ def _make_parser():
     num = ppc.fnumber
     ident = ppc.identifier
 
-    COMPARE = pp.oneOf(('= > <'))
-    BOOL = pp.oneOf(('and or'))
-
+    COMPARE = pp.oneOf(('=', '>', '<'))
+    BOOL = pp.oneOf(('and', 'or'))
     stmt = pp.Forward()
 
     group = ident
-    cols = group + pp.ZeroOrMore(pp.Literal((',')).suppress() + group)
+    cols = group + pp.ZeroOrMore(pp.Literal(',').suppress() + group)
 
     bool_op = pp.Forward()
 
@@ -25,13 +23,18 @@ def _make_parser():
     compare = group_where + pp.Optional(COMPARE + group_where)
     bool_op << compare + pp.ZeroOrMore(BOOL + compare)
 
-    select_ = pp.Group(pp.Keyword("select").suppress() + (pp.Char('*').suppress() | cols)).setName('select')
-    from_ = pp.Group(pp.Keyword("from").suppress() + cols).setName('from')
-    where_ = pp.Group(pp.Keyword("where").suppress() + bool_op).setName('where')
+    select_ = pp.Group(pp.CaselessKeyword("select").suppress() + (pp.Char('*').suppress() | cols)).setName('select')
+    from_ = pp.Group(pp.CaselessKeyword("from").suppress() + cols).setName('from')
+    where_ = pp.Group(pp.CaselessKeyword("where").suppress() + bool_op).setName('where')
+    group_by_ = pp.Group(pp.CaselessKeyword('group by').suppress() + cols).setName('group by')
+    order_by_ = pp.Group(pp.CaselessKeyword('order by').suppress() + cols ).setName('order by')
+    having_ = pp.Group(pp.CaselessKeyword('having').suppress() + bool_op).setName('having')
+
     stmt_list = pp.Forward()
     stmt << (
-            select_ | from_ | where_
+        select_ | from_ | where_ | order_by_ | group_by_ | having_
     )
+
     stmt_list << pp.ZeroOrMore(stmt)
     program = stmt_list.ignore(pp.cStyleComment).ignore(pp.dblSlashComment) + pp.StringEnd()
 
@@ -40,7 +43,7 @@ def _make_parser():
     def set_parse_action_magic(rule_name: str, parser: pp.ParserElement) -> None:
         if rule_name == rule_name.upper():
             return
-        if rule_name in ('compare', 'bool_op'):
+        if rule_name in ('compare', 'bool_op', 'group by'):
             def bin_op_parse_action(s, loc, tocs):
                 rn = rule_name
                 node = tocs[0]
@@ -66,7 +69,6 @@ def _make_parser():
     return start
 
 parser = _make_parser()
-
 
 
 def parse(prog: str) -> StmtListNode:

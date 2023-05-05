@@ -1,3 +1,6 @@
+import os
+
+import mel_parser
 from printer import Printer
 from table import Table
 from context import Context
@@ -5,12 +8,15 @@ from csv_table import CsvTable
 
 
 def main():
-    # prog = mel_parser.parse('''
-    #     select col1, col2, col3
-    #     from table
-    #     where col1 = 1 and col3 > 3
-    # ''')
-    # print(*prog.tree, sep=os.linesep)
+    prog = mel_parser.parse('''
+        SELECT col3 , col4, tab, col5
+        FROM table1
+        WHERE table1 = 10
+        GROUP BY col1
+        HAVING col2 > 10
+    ''')
+
+    print(*prog.tree, sep=os.linesep)
     table = Table("users", ['id', 'name'])
     table.add_row(['1', 'Sergey'])
     table.add_row(['2', 'Misha'])
