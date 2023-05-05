@@ -57,6 +57,8 @@ class BinOp(Enum):
     MORE = '>'
     LESS = '<'
     EQUALS = '='
+    NOT_EQUALS = '!='
+    MORE_LESS = '<>'
     AND = 'and'
     OR = 'or'
     BETWEEN = 'between'
@@ -64,7 +66,15 @@ class BinOp(Enum):
     LIKE = 'like'
     NOT = 'not'
     IS = 'is'
-    JOIN = 'join'
+
+
+class JoinType(Enum):
+    LEFT = 'LEFT'
+    RIGHT = 'RIGHT'
+    INNER = 'INNER'
+    FULL = 'FULL'
+    CROSS = 'CROSS'
+    NATURAL = 'NATURAL'
 
 
 class BinOpNode(ExprNode):
@@ -205,6 +215,43 @@ class OrderByNode(StmtNode):
 
     def __str__(self) -> str:
         return 'order by'
+
+class SubSelectNode(StmtNode):
+    def __init__(self, column: ExprNode):
+        super().__init__()
+        self.column = column
+
+    @property
+    def childs(self) -> ExprNode:
+        return self.column
+
+    def __str__(self) -> str:
+        return 'subquery'
+
+
+class JoinNode(StmtNode):
+    def __init__(self, column: ExprNode):
+        super().__init__()
+        self.column = column
+
+    @property
+    def childs(self) -> ExprNode:
+        return self.column
+
+    def __str__(self) -> str:
+        return 'join'
+
+class InnerJoinNode(StmtNode):
+    def __init__(self, column: ExprNode):
+        super().__init__()
+        self.column = column
+
+    @property
+    def childs(self) -> ExprNode:
+        return self.column
+
+    def __str__(self) -> str:
+        return 'inner join'
 
 
 class StmtListNode(AstNode):
