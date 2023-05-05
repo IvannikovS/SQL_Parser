@@ -1,5 +1,6 @@
-from contextlib import suppress
 import inspect
+from contextlib import suppress
+
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 
@@ -11,11 +12,11 @@ def _make_parser():
     ident = ppc.identifier | (pp.Literal('"').suppress() + ppc.identifier + pp.Literal('"').suppress()) | \
             (pp.Literal('"').suppress() + ppc.identifier + pp.Char('%').suppress() + pp.Literal('"').suppress())
 
-    COMPARE = pp.oneOf(('=', '>', '<'))
+    COMPARE = pp.oneOf(('=', '>', '<', 'join'))
     BOOL = pp.oneOf(('and', 'or', 'between', 'in', 'like', 'not', 'is'))
     stmt = pp.Forward()
 
-    group = ident
+    group = ident + pp.Optional(pp.Char('.').suppress() + ident)
     cols = group + pp.ZeroOrMore(pp.Literal(',').suppress() + group)
 
     bool_op = pp.Forward()
@@ -25,7 +26,7 @@ def _make_parser():
     bool_op << compare + pp.ZeroOrMore(BOOL + compare)
 
     select_ = pp.Group(pp.CaselessKeyword("select").suppress() + (pp.Char('*').suppress() | cols)).setName('select')
-    from_ = pp.Group(pp.CaselessKeyword("from").suppress() + cols).setName('from')
+    from_ = pp.Group(pp.CaselessKeyword("from").suppress() + bool_op).setName('from')
     where_ = pp.Group(pp.CaselessKeyword("where").suppress() + bool_op).setName('where')
     group_by_ = pp.Group(pp.CaselessKeyword('group by').suppress() + cols).setName('group by')
     order_by_ = pp.Group(pp.CaselessKeyword('order by').suppress() + cols).setName('order by')
@@ -36,7 +37,7 @@ def _make_parser():
 
     stmt_list = pp.Forward()
     stmt << (
-        select_ | from_ | where_ | order_by_ | group_by_ | having_
+            select_ | from_ | where_ | order_by_ | group_by_ | having_
     )
 
     stmt_list << pp.ZeroOrMore(stmt)
@@ -71,6 +72,7 @@ def _make_parser():
             set_parse_action_magic(var_name, value)
 
     return start
+
 
 parser = _make_parser()
 

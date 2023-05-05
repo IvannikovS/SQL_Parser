@@ -36,8 +36,3 @@ class Context:
 
     def get_count(self):
         return len(self._tables)
-# def get_value(self, row: dict, col: str):
-#     if col in row.keys():
-#         return row[col]
-#     else:
-#         raise Exception('Error')

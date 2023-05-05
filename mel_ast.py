@@ -64,6 +64,7 @@ class BinOp(Enum):
     LIKE = 'like'
     NOT = 'not'
     IS = 'is'
+    JOIN = 'join'
 
 
 class BinOpNode(ExprNode):
@@ -204,7 +205,6 @@ class OrderByNode(StmtNode):
 
     def __str__(self) -> str:
         return 'order by'
-
 
 
 class StmtListNode(AstNode):
