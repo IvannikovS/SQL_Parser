@@ -12,7 +12,8 @@ def _make_parser():
     ident = ppc.identifier | (pp.Literal('"').suppress() + ppc.identifier + pp.Literal('"').suppress()) | \
             (pp.Literal('"').suppress() + ppc.identifier + pp.Char('%').suppress() + pp.Literal('"').suppress())
 
-    COMPARE = pp.oneOf(('=', '>', '<', 'join'))
+    COMPARE = pp.oneOf(('=', '>', '<', '!=', '<>'))
+    join_type = pp.oneOf(('inner', 'left', 'right', 'full', 'cross', 'natural'))
     BOOL = pp.oneOf(('and', 'or', 'between', 'in', 'like', 'not', 'is'))
     stmt = pp.Forward()
 
@@ -22,6 +23,7 @@ def _make_parser():
     bool_op = pp.Forward()
 
     group_where = ident | num | pp.Literal('(').suppress() + bool_op + pp.Literal(')').suppress()
+
     compare = group_where + pp.Optional(COMPARE + group_where)
     bool_op << compare + pp.ZeroOrMore(BOOL + compare)
 
@@ -31,13 +33,11 @@ def _make_parser():
     group_by_ = pp.Group(pp.CaselessKeyword('group by').suppress() + cols).setName('group by')
     order_by_ = pp.Group(pp.CaselessKeyword('order by').suppress() + cols).setName('order by')
     having_ = pp.Group(pp.CaselessKeyword('having').suppress() + bool_op).setName('having')
-
-
-
+    join_ = pp.Group(pp.CaselessKeyword("join").suppress() + group + pp.CaselessKeyword("on").suppress() + bool_op | group).setName('join')
 
     stmt_list = pp.Forward()
     stmt << (
-            select_ | from_ | where_ | order_by_ | group_by_ | having_
+            select_ | from_ | where_ | order_by_ | group_by_ | having_ | join_
     )
 
     stmt_list << pp.ZeroOrMore(stmt)
