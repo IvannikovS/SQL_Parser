@@ -8,10 +8,11 @@ from mel_ast import *
 
 def _make_parser():
     num = ppc.fnumber
-    ident = ppc.identifier
+    ident = ppc.identifier | (pp.Literal('"').suppress() + ppc.identifier + pp.Literal('"').suppress()) | \
+            (pp.Literal('"').suppress() + ppc.identifier + pp.Char('%').suppress() + pp.Literal('"').suppress())
 
     COMPARE = pp.oneOf(('=', '>', '<'))
-    BOOL = pp.oneOf(('and', 'or'))
+    BOOL = pp.oneOf(('and', 'or', 'between', 'in', 'like', 'not', 'is'))
     stmt = pp.Forward()
 
     group = ident
@@ -27,8 +28,11 @@ def _make_parser():
     from_ = pp.Group(pp.CaselessKeyword("from").suppress() + cols).setName('from')
     where_ = pp.Group(pp.CaselessKeyword("where").suppress() + bool_op).setName('where')
     group_by_ = pp.Group(pp.CaselessKeyword('group by').suppress() + cols).setName('group by')
-    order_by_ = pp.Group(pp.CaselessKeyword('order by').suppress() + cols ).setName('order by')
+    order_by_ = pp.Group(pp.CaselessKeyword('order by').suppress() + cols).setName('order by')
     having_ = pp.Group(pp.CaselessKeyword('having').suppress() + bool_op).setName('having')
+
+
+
 
     stmt_list = pp.Forward()
     stmt << (
