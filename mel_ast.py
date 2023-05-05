@@ -59,6 +59,11 @@ class BinOp(Enum):
     EQUALS = '='
     AND = 'and'
     OR = 'or'
+    BETWEEN = 'between'
+    IN = 'in'
+    LIKE = 'like'
+    NOT = 'not'
+    IS = 'is'
 
 
 class BinOpNode(ExprNode):
