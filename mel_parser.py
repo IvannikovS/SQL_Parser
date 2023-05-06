@@ -13,7 +13,6 @@ def _make_parser():
             (pp.Literal('"').suppress() + ppc.identifier + pp.Char('%').suppress() + pp.Literal('"').suppress())
 
     COMPARE = pp.oneOf(('=', '>', '<', '!=', '<>'))
-    join_type = pp.oneOf(('inner', 'left', 'right', 'full', 'cross', 'natural'))
     BOOL = pp.oneOf(('and', 'or', 'between', 'in', 'like', 'not', 'is'))
     stmt = pp.Forward()
 
@@ -35,9 +34,13 @@ def _make_parser():
     having_ = pp.Group(pp.CaselessKeyword('having').suppress() + bool_op).setName('having')
     join_ = pp.Group(pp.CaselessKeyword("join").suppress() + group + pp.CaselessKeyword("on").suppress() + bool_op | group).setName('join')
 
+    drop_ = pp.Group(pp.CaselessKeyword("drop").suppress() + cols).setName('drop table')
+    subquery = pp.Group(pp.Char('(').suppress() + select_ + from_ + where_ + pp.Char(')').suppress()).setName('subquery')
+
+
     stmt_list = pp.Forward()
     stmt << (
-            select_ | from_ | where_ | order_by_ | group_by_ | having_ | join_
+            select_ | from_ | where_ | order_by_ | group_by_ | having_ | join_ | subquery
     )
 
     stmt_list << pp.ZeroOrMore(stmt)
@@ -48,7 +51,7 @@ def _make_parser():
     def set_parse_action_magic(rule_name: str, parser: pp.ParserElement) -> None:
         if rule_name == rule_name.upper():
             return
-        if rule_name in ('compare', 'bool_op', 'group by'):
+        if rule_name in ('compare', 'bool_op', 'group by', 'drop table'):
             def bin_op_parse_action(s, loc, tocs):
                 rn = rule_name
                 node = tocs[0]
