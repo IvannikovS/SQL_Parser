@@ -216,17 +216,6 @@ class OrderByNode(StmtNode):
     def __str__(self) -> str:
         return 'order by'
 
-class SubSelectNode(StmtNode):
-    def __init__(self, column: ExprNode):
-        super().__init__()
-        self.column = column
-
-    @property
-    def childs(self) -> ExprNode:
-        return self.column
-
-    def __str__(self) -> str:
-        return 'subquery'
 
 
 class JoinNode(StmtNode):
@@ -241,7 +230,8 @@ class JoinNode(StmtNode):
     def __str__(self) -> str:
         return 'join'
 
-class InnerJoinNode(StmtNode):
+
+class SubqueryNode(StmtNode):
     def __init__(self, column: ExprNode):
         super().__init__()
         self.column = column
@@ -251,7 +241,7 @@ class InnerJoinNode(StmtNode):
         return self.column
 
     def __str__(self) -> str:
-        return 'inner join'
+        return 'subquery'
 
 
 class StmtListNode(AstNode):
